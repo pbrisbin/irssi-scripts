@@ -16,9 +16,9 @@
 #
 ###
 use strict;
-
 use Irssi;
 use LWP::UserAgent;
+use Crypt::SSLeay;
 use HTML::Entities;
 
 use vars qw($VERSION %IRSSI);
@@ -82,8 +82,8 @@ sub fetch_title {
 sub process {
   my ($msg, $winitem) = @_;
 
-  my $url = ""
-  my $title = ""
+  my $url = "";
+  my $title = "";
 
   $url   = parse_url($msg)   if $msg;
   $title = fetch_title($url) if $url;
