@@ -88,7 +88,7 @@ sub process {
   $url   = parse_url($msg)   if $msg;
   $title = fetch_title($url) if $url;
 
-  $winitem->print($title) if $title;
+  $winitem->print("Title: " . $title) if $title;
 }
 
 sub handle_message {
