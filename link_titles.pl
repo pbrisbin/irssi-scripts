@@ -12,13 +12,10 @@
 #
 #   Options: lt_in_queries, lt_in_channels. Default is queries only.
 #
-#   Parsing/fetching from https://github.com/horgh/irssi-scripts.
-#
 ###
 use strict;
 use Irssi;
-use LWP::UserAgent;
-use Crypt::SSLeay;
+use LWP::Simple;
 use HTML::Entities;
 
 use vars qw($VERSION %IRSSI);
@@ -32,46 +29,35 @@ $VERSION = '0.1';
   license     => 'GPL',
 );
 
-my $useragent = "Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.9.1.11) Gecko/20100721 Firefox/3.0.6";
-my $ua = LWP::UserAgent->new('agent' => $useragent, max_size => 32768);
-
 sub parse_url {
   my ($msg) = @_;
-  my $url = "";
 
-  # parse for a url
-  if ($msg =~ /(http:\/\/\S+)/i) {
-    $url = $1;
-  } elsif ($msg =~ /(https:\/\/\S+)/i) {
-    $url = $1;
-  } elsif ($msg =~ /(www\.\S+)/i) {
-    $url = "http://" . $1;
+  if ($msg =~ /(https?:\/\/\S+)/i) {
+    return $1;
   }
 
-  return $url;
+  if ($msg =~ /(www\.\S+)/i) {
+    return "http://" . $1;
+  }
+
+  return "";
 }
 
 sub fetch_title {
   my ($url) = @_;
 
-  my $response = $ua->get($url);
+  my $html = get($url);
 
-  if (!$response->is_success) {
-    print("Failure ($url): " . $response->code() . " " . $response->message());
-    return "";
-  }
-
-  my $page = $response->decoded_content();
-
-  if ($page =~ /<title>(.*)<\/title>/si) {
+  if ($html =~ /<title>(.*)<\/title>/si) {
     my $title = $1;
 
-    # fix text
+    # trim and compress whitespace
     $title =~ s/^[\s\t]+//;
     $title =~ s/[\s\t]+$//;
     $title =~ s/[\t]+//g;
     $title =~ s/\s+/ /g;
 
+    # decode
     decode_entities($title);
     return $title;
   }
@@ -82,11 +68,8 @@ sub fetch_title {
 sub process {
   my ($msg, $winitem) = @_;
 
-  my $url = "";
-  my $title = "";
-
-  $url   = parse_url($msg)   if $msg;
-  $title = fetch_title($url) if $url;
+  my $url   = parse_url($msg)   if $msg;
+  my $title = fetch_title($url) if $url;
 
   return unless $title;
 
