@@ -48,7 +48,7 @@ sub fetch_title {
 
   my $html = get($url);
 
-  if ($html =~ /<title>(.*)<\/title>/si) {
+  if ($html =~ /<title>(.*?)<\/title>/si) {
     my $title = $1;
 
     # trim and compress whitespace
